@@ -3,173 +3,197 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>COFFE TRADE PRO Terminal</title>
+    <title>COFFE TRADE PRO 2026</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         :root {
-            --terminal-bg: #0a0e17;
-            --card-bg: #1a1f2e;
-            --primary: #00d4ff;
-            --secondary: #8b5cf6;
-            --profit: #10b981;
-            --loss: #ef4444;
-            --warning: #f59e0b;
-            --text-primary: #f8fafc;
-            --text-secondary: #94a3b8;
+            --bg: #0f172a;              /* Azul noche profundo */
+            --card: rgba(30, 41, 59, 0.7); /* Glassmorphism */
+            --accent: #22c55e;           /* Verde finca cafetera */
+            --gold: #f59e0b;             /* Dorado del grano maduro */
+            --text: #e2e8f0;
+            --text-light: #94a3b8;
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { background: var(--terminal-bg); color: var(--text-primary); font-family: 'Segoe UI', system-ui, sans-serif; min-height: 100vh; padding: 20px; overflow-x: hidden; }
-        
+        body {
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            color: var(--text);
+            font-family: 'Inter', system-ui, sans-serif;
+            min-height: 100vh;
+            padding: 20px;
+            backdrop-filter: blur(10px);
+        }
+
         #particles { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; pointer-events: none; }
-        .particle { position: absolute; width: 2px; height: 2px; background: var(--primary); border-radius: 50%; opacity: 0.4; animation: float 15s infinite linear; }
+        .particle { position: absolute; width: 3px; height: 3px; background: var(--accent); border-radius: 50%; opacity: 0.6; animation: float 20s infinite linear; }
+
+        .header {
+            text-align: center;
+            padding: 40px 0;
+        }
+        .title {
+            font-size: 3.5rem;
+            background: linear-gradient(135deg, var(--accent), var(--gold));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font68: bold;
+        }
+
+        .card {
+            background: var(--card);
+            backdrop-filter: blur(12px);
+            border-radius: 24px;
+            padding: 30px;
+            margin: 20px auto;
+            max-width: 900px;
+            border: 1px solid rgba(34, 197, 94, 0.2);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        .price-big {
+            font-size: 5rem;
+            font-weight: 900;
+            text-align: center;
+            background: linear-gradient(135deg, var(--accent), var(--gold));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, var(--accent), #16a34a);
+            color: white;
+            border: none;
+            padding: 16px 32px;
+            border-radius: 16px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            cursor: pointer;
+            margin: 10px;
+            box-shadow: 0 8px 20px rgba(34, 197, 94, 0.4);
+            transition: all 0.3s;
+        }
+        .btn:hover { transform: translateY(-4px); box-shadow: 0 12px 30px rgba(34, 197, 94, 0.5); }
+        .btn-sell { background: linear-gradient(135deg, #ef4444, #dc2626); box-shadow: 0 8px 20px rgba(239, 68, 68, 0.4); }
+
+        .position {
+            background: rgba(255,255,255,0.1);
+            padding: 20px;
+            border-radius: 16px;
+            margin: 20px 0;
+            font-size: 1.3rem;
+        }
+
+        /* Modal IA */
+        #modal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(15, 23, 42, 0.9);
+            backdrop-filter: blur(10px);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        .modal-content {
+            background: var(--card);
+            backdrop-filter: blur(15px);
+            border-radius: 24px;
+            padding: 30px;
+            max-width: 600px;
+            text-align: center;
+            border: 1px solid rgba(34, 197, 94, 0.3);
+        }
+        .modal-title {
+            font-size: 2.5rem;
+            margin-bottom: 20px;
+        }
+        .modal-text {
+            font-size: 1.4rem;
+            line-height: 1.6;
+            margin: 20px 0;
+        }
+        .emoji-big { font-size: 4rem; margin: 20px 0; }
+
         @keyframes float { 0% { transform: translateY(0); } 100% { transform: translateY(-100vh); } }
-
-        .terminal-header { text-align: center; padding: 30px 0; margin-bottom: 30px; position: relative; overflow: hidden; }
-        .terminal-header::before { content: ''; position: absolute; top: 0; left: -100%; width: 100%; height: 100%; background: linear-gradient(90deg, transparent, rgba(0, 212, 255, 0.2), transparent); animation: shimmer 4s infinite; }
-        @keyframes shimmer { 0% { left: -100%; } 100% { left: 100%; } }
-
-        .glow-text { color: var(--primary); text-shadow: 0 0 20px rgba(0, 212, 255, 0.8); font-size: 3rem; animation: pulse 2s infinite; }
-        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.8; } }
-
-        .market-card { background: var(--card-bg); border-radius: 20px; padding: 30px; margin-bottom: 30px; border: 1px solid rgba(255, 255, 255, 0.05); box-shadow: 0 15px 50px rgba(0, 0, 0, 0.5); position: relative; overflow: hidden; transition: all 0.3s ease; }
-        .market-card:hover { transform: translateY(-10px); box-shadow: 0 20px 60px rgba(0, 212, 255, 0.3); }
-        .market-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 5px; background: linear-gradient(90deg, var(--primary), var(--secondary), var(--profit)); }
-
-        .live-price { font-size: 4.5rem; font-weight: 800; background: linear-gradient(135deg, var(--primary), var(--secondary)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; text-align: center; animation: float 4s infinite ease-in-out; }
-        @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
-
-        .price-change { display: inline-block; padding: 10px 25px; border-radius: 30px; font-weight: 700; font-size: 1.4rem; animation: bounce 2s infinite; }
-        @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-5px); } }
-        .profit { background: rgba(16, 185, 129, 0.3); color: var(--profit); border: 2px solid var(--profit); }
-        .loss { background: rgba(239, 68, 68, 0.3); color: var(--loss); border: 2px solid var(--loss); }
-
-        .btn-ia { background: linear-gradient(135deg, var(--primary), var(--secondary)); color: white; border: none; padding: 20px 40px; border-radius: 20px; font-size: 1.4rem; font-weight: 700; cursor: pointer; box-shadow: 0 10px 30px rgba(0, 212, 255, 0.4); transition: all 0.3s ease; margin: 10px; }
-        .btn-ia:hover { transform: translateY(-5px); box-shadow: 0 15px 40px rgba(0, 212, 255, 0.6); }
-        .btn-buy { background: linear-gradient(135deg, var(--profit), #059669); }
-        .btn-sell { background: linear-gradient(135deg, var(--loss), #dc2626); }
-
-        .chart-wrapper { height: 350px; background: rgba(0, 0, 0, 0.3); border-radius: 15px; padding: 20px; margin: 20px 0; }
-
-        .position-info { font-size: 1.4rem; margin: 20px 0; padding: 15px; background: rgba(255,255,255,0.05); border-radius: 15px; }
-        .gain { color: var(--profit); }
-        .loss { color: var(--loss); }
-
-        .notification { position: fixed; bottom: 20px; right: 20px; background: var(--card-bg); border-left: 5px solid var(--primary); padding: 20px; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); animation: slideIn 0.5s, slideOut 0.5s 5s forwards; z-index: 1000; }
-        @keyframes slideIn { from { transform: translateX(100%); } to { transform: translateX(0); } }
-        @keyframes slideOut { from { transform: translateX(0); } to { transform: translateX(100%); opacity: 0; } }
-
-        @media (max-width: 768px) { .glow-text { font-size: 2.2rem; } .live-price { font-size: 3rem; } }
+        @media (max-width: 768px) { .price-big { font-size: 3.5rem; } .title { font-size: 2.5rem; } }
     </style>
 </head>
 <body>
     <div id="particles"></div>
 
-    <header class="terminal-header">
-        <div class="glow-text">COFFE TRADE PRO</div>
-        <p style="color: var(--text-secondary);">Terminal Financiero IA • Simulación de Trading • Precios Reales Café Arabica ☕</p>
-    </header>
+    <div class="header">
+        <h1 class="title">COFFE TRADE PRO 2026 ☕</h1>
+        <p>Terminal de café para el pueblo – Cali, Valle del Cauca</p>
+    </div>
 
-    <main style="max-width: 1200px; margin: 0 auto;">
-        <div class="market-card">
-            <h2 style="text-align: center; color: var(--primary);">Futuros Café Arabica (KC=F)</h2>
-            <div class="live-price" id="current-price">Cargando...</div>
-            <div style="text-align: center;">
-                <span id="price-change" class="price-change neutral">Calculando...</span>
-            </div>
-            <div class="chart-wrapper">
-                <canvas id="priceChart"></canvas>
-            </div>
-
-            <!-- Simulación de Trading -->
-            <div class="position-info" id="position-info">No tienes posición abierta.</div>
-            <div style="text-align: center;">
-                <button class="btn-ia btn-buy" onclick="comprar()">Comprar Ahora (1000 lbs)</button>
-                <button class="btn-ia btn-sell" onclick="vender()" id="btn-vender" disabled>Vender Ahora</button>
-            </div>
-            <div style="text-align: center; margin-top: 20px;">
-                <button class="btn-ia" onclick="consultarIA()">Consultar IA Pro</button>
-                <button class="btn-ia" style="background: var(--warning);" onclick="actualizarDatos()">Actualizar Precio</button>
-            </div>
+    <div class="card">
+        <h2>Precio Actual del Café Arabica</h2>
+        <div class="price-big" id="current-price">Cargando...</div>
+        <div style="text-align: center; margin: 20px 0;">
+            <button class="btn" onclick="consultarIA()">Preguntarle a la IA</button>
+            <button class="btn" onclick="actualizarDatos()">Actualizar Precio</button>
         </div>
-    </main>
+
+        <div class="position" id="position-info">No tienes café comprado aún.</div>
+        <div style="text-align: center;">
+            <button class="btn" onclick="comprar()">Comprar 1000 lbs</button>
+            <button class="btn btn-sell" onclick="vender()" id="btn-vender" disabled>Vender Todo</button>
+        </div>
+    </div>
+
+    <!-- Modal IA -->
+    <div id="modal">
+        <div class="modal-content">
+            <h2 class="modal-title">Consejo de la IA ☕</h2>
+            <div class="emoji-big" id="modal-emoji"></div>
+            <p class="modal-text" id="modal-text"></p>
+            <button class="btn" onclick="cerrarModal()">Cerrar</button>
+        </div>
+    </div>
 
     <script>
         const CORS_PROXY = 'https://api.allorigins.win/raw?url=';
-        const CANTIDAD = 1000; // Simulamos 1000 lbs para números reales
+        const CANTIDAD = 1000;
 
-        let currentPrice = 292.50; // Fallback
+        let currentPrice = 292.50;
         let buyPrice = 0;
         let tienePosicion = false;
-        let chart;
 
-        // Partículas
+        // Partículas verdes (café)
         function createParticles() {
             const container = document.getElementById('particles');
-            for (let i = 0; i < 100; i++) {
+            for (let i = 0; i < 80; i++) {
                 const p = document.createElement('div');
                 p.classList.add('particle');
                 p.style.left = Math.random() * 100 + 'vw';
-                p.style.animationDelay = Math.random() * 15 + 's';
-                p.style.animationDuration = 10 + Math.random() * 10 + 's';
+                p.style.animationDelay = Math.random() * 20 + 's';
                 container.appendChild(p);
             }
         }
         createParticles();
 
-        function crearGrafico() {
-            const ctx = document.getElementById('priceChart').getContext('2d');
-            if (chart) chart.destroy();
-            chart = new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels: ['Ene', 'Feb 1', 'Feb 5', 'Feb 10', 'Hoy'],
-                    datasets: [{
-                        label: 'Precio (centavos/lb)',
-                        data: [320, 310, 300, 295, currentPrice],
-                        borderColor: '#00d4ff',
-                        backgroundColor: 'rgba(0, 212, 255, 0.2)',
-                        tension: 0.4,
-                        fill: true
-                    }]
-                },
-                options: { responsive: true }
-            });
-        }
-
         function actualizarPrecioUI() {
             document.getElementById('current-price').innerText = `$${ (currentPrice / 100).toFixed(2) } USD/lb`;
 
-            // Cambio vs referencia aproximada
-            const change = ((currentPrice - 295) / 295 * 100).toFixed(2);
-            const changeEl = document.getElementById('price-change');
-            if (change > 0) {
-                changeEl.className = 'price-change profit';
-                changeEl.innerText = `+${change}%`;
-            } else {
-                changeEl.className = 'price-change loss';
-                changeEl.innerText = `${change}%`;
-            }
-
-            // Actualizar posición si tienes
             if (tienePosicion) {
                 const valorActual = (currentPrice / 100) * CANTIDAD;
                 const valorCompra = (buyPrice / 100) * CANTIDAD;
                 const ganancia = valorActual - valorCompra;
-                const porcentaje = ((ganancia / valorCompra) * 100).toFixed(2);
+                const porcentaje = ((ganancia / valorCompra) * 100).toFixed(1);
 
                 const info = document.getElementById('position-info');
                 info.innerHTML = `
-                    <strong>Posición abierta:</strong> 1000 lbs compradas a $${(buyPrice / 100).toFixed(2)} USD/lb<br>
-                    Valor actual: $${valorActual.toFixed(2)} USD<br>
-                    <span class="${ganancia >= 0 ? 'gain' : 'loss'}">
-                        Ganancia/Pérdida: $${ganancia.toFixed(2)} USD (${porcentaje}%)
-                    </span>
+                    ¡Tienes ${CANTIDAD} lbs compradas a $${(buyPrice / 100).toFixed(2)}!<br>
+                    Valor ahora: $${valorActual.toFixed(0)} USD<br>
+                    ${ganancia >= 0 ? '¡Vas ganando' : 'Vas perdiendo'} $${Math.abs(ganancia).toFixed(0)} USD (${porcentaje}%)
                 `;
                 document.getElementById('btn-vender').disabled = false;
+            } else {
+                document.getElementById('position-info').innerText = 'No tienes café comprado aún.';
+                document.getElementById('btn-vender').disabled = true;
             }
-
-            crearGrafico();
         }
 
         async function actualizarDatos() {
@@ -177,70 +201,60 @@
                 const url = CORS_PROXY + encodeURIComponent('https://query1.finance.yahoo.com/v8/finance/chart/KC=F?range=1d&interval=1d');
                 const res = await fetch(url);
                 const data = await res.json();
-                const meta = data.chart.result[0].meta;
-                currentPrice = meta.regularMarketPrice?.toFixed(2) || currentPrice;
-
+                currentPrice = data.chart.result[0].meta.regularMarketPrice?.toFixed(2) || currentPrice;
                 actualizarPrecioUI();
-                mostrarNotificacion('Precio actualizado ☕');
             } catch (e) {
-                mostrarNotificacion('Precio aproximado (actualización fallida)');
+                // Fallback silencioso
             }
         }
 
         function comprar() {
-            if (tienePosicion) {
-                mostrarNotificacion('Ya tienes posición abierta');
-                return;
-            }
+            if (tienePosicion) return;
             buyPrice = currentPrice;
             tienePosicion = true;
-            document.getElementById('btn-vender').disabled = false;
             actualizarPrecioUI();
-            mostrarNotificacion(`¡Compraste 1000 lbs a $${(buyPrice / 100).toFixed(2)} USD/lb!`);
         }
 
         function vender() {
-            if (!tienePosicion) {
-                mostrarNotificacion('No tienes posición para vender');
-                return;
-            }
-            const valorActual = (currentPrice / 100) * CANTIDAD;
-            const valorCompra = (buyPrice / 100) * CANTIDAD;
-            const ganancia = valorActual - valorCompra;
-
+            if (!tienePosicion) return;
+            const ganancia = ((currentPrice / 100) * CANTIDAD) - ((buyPrice / 100) * CANTIDAD);
             tienePosicion = false;
             buyPrice = 0;
-            document.getElementById('btn-vender').disabled = true;
             actualizarPrecioUI();
 
-            const resultado = ganancia >= 0 
-                ? `¡Ganaste $${ganancia.toFixed(2)} USD! 🎉` 
-                : `Perdiste $${Math.abs(ganancia).toFixed(2)} USD 😞`;
-            mostrarNotificacion(resultado);
+            const mensaje = ganancia >= 0 
+                ? `¡Ganaste $${ganancia.toFixed(0)} USD! Como vender el café en precio alto en la plaza de mercado 🎉`
+                : `Perdiste $${Math.abs(ganancia).toFixed(0)} USD. La próxima será como un gol de Colombia en el último minuto 😤`;
+            mostrarModal('¡Vendiste!', '💰', mensaje);
         }
+
+        const consejosIA = [
+            { emoji: '🥳', text: "¡El precio está bajo, como cuando el café en la finca está barato! Es hora de COMPRAR y guardar como hormiguita." },
+            { emoji: '⚠️', text: "El precio está subiendo, como el río Cauca en invierno. Si ya compraste, considera VENDER y ganar billete." },
+            { emoji: '🤝', text: "Mercado tranquilo, como un domingo en Cali tomando tinto. Puedes esperar o comprar poquito a poquito." },
+            { emoji: '🚨', text: "Precio volátil, como el tráfico en la 5ta. Pon cuidado, no compres todo de una o te puedes quemar." }
+        ];
 
         function consultarIA() {
-            const mensajes = [
-                "IA Pro: Mercado bajista por cosecha Brasil. Compra en dips bajo $2.80 y vende en rebote.",
-                "Alerta IA: Precios bajos estables. Buena oportunidad para acumular en Valle del Cauca.",
-                "Análisis: Clima favorable Colombia. Posible subida si demanda Asia aumenta.",
-                "IA: Tendencia bajista corta plazo. Usa stop-loss si compras."
-            ];
-            alert(mensajes[Math.floor(Math.random() * mensajes.length)]);
+            const consejo = consejosIA[Math.floor(Math.random() * consejosIA.length)];
+            mostrarModal('Consejo del día ☕', consejo.emoji, consejo.text);
         }
 
-        function mostrarNotificacion(msg) {
-            const notif = document.createElement('div');
-            notif.className = 'notification';
-            notif.innerText = msg;
-            document.body.appendChild(notif);
-            setTimeout(() => notif.remove(), 6000);
+        function mostrarModal(titulo, emoji, texto) {
+            document.getElementById('modal').style.display = 'flex';
+            document.getElementById('modal-title').innerText = titulo;
+            document.getElementById('modal-emoji').innerText = emoji;
+            document.getElementById('modal-text').innerText = texto;
+        }
+
+        function cerrarModal() {
+            document.getElementById('modal').style.display = 'none';
         }
 
         // Inicio
         actualizarDatos();
         setInterval(actualizarDatos, 30000);
-        crearGrafico();
+        actualizarPrecioUI();
     </script>
 </body>
 </html>
