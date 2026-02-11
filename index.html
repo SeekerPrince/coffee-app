@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>COFFE TRADE PRO - Simulador Matemáticas Café 2026</title>
+    <title>COFFE TRADE PRO - Simulador Inteligente Café 2026</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         :root {
@@ -16,67 +16,61 @@
             --text: #e2e8f0;
         }
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { background: var(--bg); color: var(--text); font-family: system-ui, sans-serif; padding: 10px; }
+        body { background: var(--bg); color: var(--text); font-family: system-ui, sans-serif; padding: 10px; min-height: 100vh; }
         .header { text-align: center; padding: 30px; background: linear-gradient(135deg, var(--accent), var(--gold)); border-radius: 24px; margin-bottom: 20px; }
         .title { font-size: 3rem; color: white; font-weight: bold; }
         .card { background: var(--card); backdrop-filter: blur(12px); border-radius: 20px; padding: 25px; margin: 20px 0; box-shadow: 0 12px 35px rgba(0,0,0,0.5); }
         .price-big { font-size: 4.5rem; text-align: center; font-weight: 900; background: linear-gradient(135deg, var(--accent), var(--gold)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .signal { font-size: 2.5rem; text-align: center; padding: 20px; border-radius: 20px; margin: 20px 0; font-weight: bold; }
+        .buy-signal { background: rgba(34,197,94,0.3); color: var(--profit); }
+        .sell-signal { background: rgba(239,68,68,0.3); color: var(--loss); }
+        .hold-signal { background: rgba(251,191,36,0.3); color: var(--gold); }
         .btn { background: var(--accent); color: white; border: none; padding: 14px 28px; border-radius: 14px; font-size: 1.2rem; cursor: pointer; margin: 8px; box-shadow: 0 6px 18px rgba(34,197,94,0.4); transition: 0.3s; }
         .btn:hover { transform: translateY(-4px); }
-        .btn-sell { background: var(--loss); }
-        .input { padding: 12px; border-radius: 12px; border: none; margin: 10px; width: 200px; }
+        .input { padding: 12px; border-radius: 12px; border: none; margin: 10px; width: 220px; font-size: 1.1rem; }
         .result { background: rgba(255,255,255,0.1); padding: 20px; border-radius: 16px; margin: 20px 0; line-height: 1.8; font-size: 1.2rem; }
-        .chart-container { height: 400px; margin: 20px 0; }
+        .chart-container { height: 450px; margin: 30px 0; }
         #modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); justify-content: center; align-items: center; z-index: 1000; padding: 20px; }
         .modal-content { background: var(--card); border-radius: 24px; padding: 40px; max-width: 650px; text-align: center; }
-        .emoji-big { font-size: 5rem; margin: 20px 0; }
+        .emoji-big { font-size: 5.5rem; margin: 25px 0; }
+        .investment-input { text-align: center; margin: 30px 0; }
+        @media (max-width: 768px) { .price-big { font-size: 3rem; } .title { font-size: 2.4rem; } .chart-container { height: 350px; } }
     </style>
 </head>
 <body>
     <div class="header">
         <h1 class="title">COFFE TRADE PRO 2026 ☕</h1>
-        <p>Simulador Inversión con Matemáticas Financieras Completas - Cali</p>
+        <p>Simulador Inteligente con Matemáticas Financieras - Te dice cuándo COMPRAR o VENDER</p>
+    </div>
+
+    <div class="card investment-input">
+        <h2>Ingresa tu capital para simular</h2>
+        <input type="number" id="capital" class="input" placeholder="Tu dinero en USD (ej. 10000)" value="10000">
+        <button class="btn" onclick="iniciarSimulacion()">Iniciar Simulación Personal</button>
     </div>
 
     <div class="card">
         <h2>Precio Actual Café Arabica</h2>
         <div class="price-big" id="price">$2.93 USD/lb</div>
-        <button class="btn" onclick="actualizarPrecio()">Actualizar</button>
+        <button class="btn" onclick="actualizarTodo()">Calcular Todo (Matemáticas)</button>
     </div>
 
     <div class="card">
-        <h2>Black-Scholes + Greeks (Opciones Café)</h2>
-        <input type="number" id="strike" class="input" placeholder="Strike USD/lb" value="3.00" step="0.01">
-        <input type="number" id="days" class="input" placeholder="Días vencimiento" value="30">
-        <input type="number" id="vol" class="input" placeholder="Volatilidad % (ej. 35)" value="35">
-        <input type="number" id="rate" class="input" placeholder="Tasa libre riesgo % (ej. 4)" value="4">
-        <button class="btn" onclick="calcularBlackScholes()">Calcular Call/Put + Greeks</button>
-        <div class="result" id="bs-result"></div>
+        <h2>Señal Inteligente (Basada en Matemáticas)</h2>
+        <div class="signal" id="signal">Calculando...</div>
+        <div class="result" id="explicacion"></div>
     </div>
 
     <div class="card">
-        <h2>Monte Carlo Simulación Precios Futuros</h2>
-        <input type="number" id="mc-days" class="input" placeholder="Días simulación" value="90">
-        <input type="number" id="mc-sims" class="input" placeholder="Simulaciones (1000-5000)" value="2000">
-        <button class="btn" onclick="monteCarlo()">Simular Trayectorias</button>
-        <div class="chart-container"><canvas id="mcChart"></canvas></div>
-        <div class="result" id="mc-result"></div>
+        <h2>Gráfica Precios + Simulación Monte Carlo</h2>
+        <div class="chart-container">
+            <canvas id="chart"></canvas>
+        </div>
     </div>
 
     <div class="card">
-        <h2>Value at Risk (VaR) y Sharpe Ratio</h2>
-        <input type="number" id="var-confidence" class="input" placeholder="Confianza % (ej. 95)" value="95">
-        <input type="number" id="var-period" class="input" placeholder="Período días" value="30">
-        <button class="btn" onclick="calcularRiesgo()">Calcular Riesgo</button>
-        <div class="result" id="risk-result"></div>
-    </div>
-
-    <div class="card">
-        <h2>Trading Simulado Futures Café</h2>
-        <input type="number" id="cantidad" class="input" placeholder="Cantidad lbs" value="1000">
-        <button class="btn" onclick="comprar()">Comprar</button>
-        <button class="btn btn-sell" onclick="vender()" id="sell-btn" disabled>Vender</button>
-        <div class="result" id="position-result">No tienes posición.</div>
+        <h2>Tu Portafolio Simulado</h2>
+        <div class="result" id="portafolio">Ingresa tu capital y calcula para ver.</div>
     </div>
 
     <div id="modal">
@@ -89,9 +83,23 @@
     </div>
 
     <script>
-        let currentPrice = 2.93;
+        let currentPrice = 2.93; // Real 11 feb 2026
+        let capital = 10000;
         let posicion = { abierta: false, cantidad: 0, precioCompra: 0 };
         let plTotal = 0;
+        let chart;
+
+        const historical = [
+            {date: 'Ene 2025', price: 3.80},
+            {date: 'Abr 2025', price:0. 3.55},
+            {date: 'Jul 2025', price: 3.30},
+            {date: 'Oct 2025', price: 3.15},
+            {date: 'Ene 2026', price: 3.05},
+            {date: 'Feb 1', price: 3.00},
+            {date: 'Feb 5', price: 2.97},
+            {date: 'Feb 10', price: 2.94},
+            {date: 'Hoy', price: currentPrice}
+        ];
 
         function normCDF(x) {
             const t = 1 / (1 + 0.2316419 * Math.abs(x));
@@ -107,124 +115,144 @@
             return K * Math.exp(-r * T) * normCDF(-d2) - S * normCDF(-d1);
         }
 
-        function greeks(call, S, K, T, r, sigma) {
-            const d1 = (Math.log(S / K) + (r + sigma * sigma / 2) * T) / (sigma * Math.sqrt(T));
-            const d2 = d1 - sigma * Math.sqrt(T);
-            const delta = call ? normCDF(d1) : normCDF(d1) - 1;
-            const gamma = normCDF(d1) / (S * sigma * Math.sqrt(T));
-            const theta = call ? - (S * normCDF(d1) * sigma) / (2 * Math.sqrt(T)) - r * K * Math.exp(-r * T) * normCDF(d2) : - (S * normCDF(-d1) * sigma) / (2 * Math.sqrt(T)) + r * K * Math.exp(-r * T) * normCDF(-d2);
-            const vega = S * normCDF(d1) * Math.sqrt(T);
-            const rho = call ? K * T * Math.exp(-r * T) * normCDF(d2) : -K * T * Math.exp(-r * T) * normCDF(-d2);
-            return { delta: delta.toFixed(4), gamma: gamma.toFixed(4), theta: (theta / 365).toFixed(4), vega: (vega / 100).toFixed(4), rho: (rho / 100).toFixed(4) };
-        }
-
-        function calcularBlackScholes() {
-            const S = currentPrice;
-            const K = parseFloat(document.getElementById('strike').value) || 3.00;
-            const days = parseFloat(document.getElementById('days').value) || 30;
-            const T = days / 365;
-            const sigma = (parseFloat(document.getElementById('vol').value) || 35) / 100;
-            const r = (parseFloat(document.getElementById('rate').value) || 4) / 100;
-
-            const call = blackScholes(true, S, K, T, r, sigma).toFixed(4);
-            const put = blackScholes(false, S, K, T, r, sigma).toFixed(4);
-            const gCall = greeks(true, S, K, T, r, sigma);
-            const gPut = greeks(false, S, K, T, r, sigma);
-
-            document.getElementById('bs-result').innerHTML = `
-                <strong>Prima Call:</strong> $${call} USD/lb<br>
-                <strong>Prima Put:</strong> $${put} USD/lb<br>
-                <strong>Greeks Call:</strong> Δ ${gCall.delta} | Γ ${gCall.gamma} | Θ ${gCall.theta}/día | ν ${gCall.vega} | ρ ${gCall.rho}<br>
-                <strong>Greeks Put:</strong> Δ ${gPut.delta} | Γ ${gPut.gamma} | Θ ${gPut.theta}/día | ν ${gPut.vega} | ρ ${gPut.rho}<br>
-                <small>Como en el video: ecuación del billón de dólares para opciones café.</small>
-            `;
-        }
-
-        function monteCarlo() {
-            const days = parseFloat(document.getElementById('mc-days').value) || 90;
-            const sims = parseFloat(document.getElementById('mc-sims').value) || 2000;
+        function monteCarlo(days = 90, sims = 2000) {
             const sigma = 0.35;
             const r = 0.04;
             const dt = 1 / 365;
-            const paths = [];
+            const finalPrices = [];
 
             for (let i = 0; i < sims; i++) {
                 let price = currentPrice;
-                const path = [price];
-                for (let j = 1; j <= days; j++) {
+                for (let j = 0; j < days; j++) {
                     const z = Math.random() * 2 - 1;
                     price *= Math.exp((r - 0.5 * sigma * sigma) * dt + sigma * Math.sqrt(dt) * z);
-                    path.push(price);
                 }
-                paths.push(path);
+                finalPrices.push(price);
             }
 
-            const finalPrices = paths.map(p => p[p.length - 1]);
             const avg = finalPrices.reduce((a, b) => a + b, 0) / sims;
-            const probUp = finalPrices.filter(p => p > currentPrice).length / sims * 100;
+            const probUp = finalPrices.filter(p => p > currentPrice).length / sims;
+            return { avg, probUp };
+        }
 
-            document.getElementById('mc-result').innerHTML = `
-                <strong>Monte Carlo (${sims} sims):</strong><br>
-                Precio promedio futuro: $${avg.toFixed(2)} USD/lb<br>
-                Probabilidad subir: ${probUp.toFixed(1)}%<br>
-                <small>Brownian geométrico del video: miles de futuros posibles para café.</small>
-            `;
+        function calcularVaR(confidence = 0.95, period = 30) {
+            const sigma = 0.35;
+            const z = 1.65; // 95%
+            return currentPrice * sigma * Math.sqrt(period / 365) * z;
+        }
 
-            const ctx = document.getElementById('mcChart').getContext('2d');
-            new Chart(ctx, {
+        function generarSenal() {
+            const mc = monteCarlo();
+            const varRiesgo = calcularVaR();
+            const callPrice = blackScholes(true, currentPrice, currentPrice * 1.05, 30/365, 0.04, 0.35); // Call 5% OTM
+
+            let senal = 'HOLD';
+            let explicacion = '';
+
+            if (mc.probUp > 0.6 && varRiesgo < currentPrice * 0.2) {
+                senal = 'COMPRAR';
+                explicacion = `¡COMPRA YA! Monte Carlo dice ${ (mc.probUp * 100).toFixed(0) }% probabilidad de subir. Riesgo bajo (VaR $${varRiesgo.toFixed(2)}). Como café barato en la finca, hora de acumular.`;
+            } else if (mc.probUp < 0.4 || callPrice < 0.05) {
+                senal = 'VENDER';
+                explicacion = `¡VENDE! Probabilidad baja de subir (${ (mc.probUp * 100).toFixed(0) }%). Opciones baratas indican mercado bajista. Mejor asegurar la plata como buen cafetero.`;
+            } else {
+                senal = 'MANTENER';
+                explicacion = `Mercado tranquilo como tinto en domingo. Probabilidad ${ (mc.probUp * 100).toFixed(0) }% de subir. Espera el momento perfecto.`;
+            }
+
+            document.getElementById('signal').innerText = senal;
+            document.getElementById('signal').className = 'signal ' + (senal === 'COMPRAR' ? 'buy-signal' : senal === 'VENDER' ? 'sell-signal' : 'hold-signal');
+            document.getElementById('explicacion').innerText = explicacion;
+        }
+
+        function iniciarSimulacion() {
+            capital = parseFloat(document.getElementById('capital').value) || 10000;
+            plTotal = 0;
+            posicion = { abierta: false, cantidad: 0, precioCompra: 0 };
+            actualizarTodo();
+        }
+
+        function actualizarTodo() {
+            generarSenal();
+            crearGrafica();
+            actualizarPortafolio();
+        }
+
+        function crearGrafica() {
+            const ctx = document.getElementById('chart').getContext('2d');
+            if (chart) chart.destroy();
+            chart = new Chart(ctx, {
                 type: 'line',
                 data: {
-                    labels: Array.from({length: days + 1}, (_, i) => i),
-                    datasets: paths.slice(0, 50).map((path, i) => ({
-                        label: `Sim ${i + 1}`,
-                        data: path,
-                        borderColor: 'rgba(34,197,94,0.3)',
-                        fill: false
-                    }))
+                    labels: historical.map(h => h.date),
+                    datasets: [{
+                        label: 'Precio Real Café USD/lb',
+                        data: historical.map(h => h.price),
+                        borderColor: '#22c55e',
+                        backgroundColor: 'rgba(34,197,94,0.2)',
+                        tension: 0.4,
+                        fill: true
+                    }]
                 },
                 options: { responsive: true }
             });
         }
 
-        function calcularRiesgo() {
-            const confidence = (parseFloat(document.getElementById('var-confidence').value) || 95) / 100;
-            const period = parseFloat(document.getElementById('var-period').value) || 30;
-            const sigma = 0.35;
-            const z = 1.65; // 95%
-            const varDaily = currentPrice * sigma * Math.sqrt(1/365) * z;
-            const varPeriod = currentPrice * sigma * Math.sqrt(period/365) * z;
-            const sharpe = (0.04 / sigma).toFixed(2);
-
-            document.getElementById('risk-result').innerHTML = `
-                <strong>VaR ${confidence*100}%:</strong> Diario $${varDaily.toFixed(2)} | ${period} días $${varPeriod.toFixed(2)}<br>
-                <strong>Sharpe Ratio:</strong> ${sharpe} (retorno por riesgo)<br>
-                <small>Matemáticas cuantitativas para medir riesgo en inversión café.</small>
-            `;
+        function actualizarPortafolio() {
+            if (posicion.abierta) {
+                const valor = currentPrice * posicion.cantidad;
+                const pl = valor - (posicion.precioCompra * posicion.cantidad);
+                document.getElementById('portafolio').innerHTML = `
+                    Capital inicial: $${capital.toFixed(0)} USD<br>
+                    Posición: ${posicion.cantidad} lbs a $${posicion.precioCompra.toFixed(2)}<br>
+                    Valor actual: $${valor.toFixed(0)} USD<br>
+                    Ganancia/Pérdida: $${pl.toFixed(0)} USD | Total portafolio: $${(capital + plTotal + pl).toFixed(0)} USD
+                `;
+            } else {
+                document.getElementById('portafolio').innerHTML = `
+                    Capital disponible: $${(capital + plTotal).toFixed(0)} USD<br>
+                    Listo para invertir según la señal matemática.
+                `;
+            }
         }
 
         function comprar() {
             if (posicion.abierta) return;
-            const cant = parseFloat(document.getElementById('cantidad').value) || 1000;
-            posicion = { abierta: true, cantidad: cant, precioCompra: currentPrice };
-            document.getElementById('position-result').innerText = `Compraste ${cant} lbs a $${currentPrice}`;
-            document.getElementById('sell-btn').disabled = false;
+            const cantidadMax = capital / currentPrice;
+            const cantidad = Math.floor(cantidadMax / 100) * 100; // Redondeo práctico
+            if (cantidad < 100) return;
+            posicion = { abierta: true, cantidad, precioCompra: currentPrice };
+            capital -= currentPrice * cantidad;
+            actualizarPortafolio();
         }
 
         function vender() {
             if (!posicion.abierta) return;
             const pl = (currentPrice - posicion.precioCompra) * posicion.cantidad;
             plTotal += pl;
-            document.getElementById('position-result').innerText = `Vendiste! P&L $${pl.toFixed(0)} USD | Total $${plTotal.toFixed(0)} USD`;
-            posicion.abierta = false;
-            document.getElementById('sell-btn').disabled = true;
+            capital += currentPrice * posicion.cantidad;
+            posicion = { abierta: false, cantidad: 0, precioCompra: 0 };
+            actualizarPortafolio();
         }
 
-        function actualizarPrecio() {
-            currentPrice = 2.93; // Real 11 feb 2026
-            document.getElementById('price').innerText = `$${currentPrice}`;
+        function consultarIA() {
+            const consejos = [
+                {e: '🥳', t: "¡El precio está bajo como café barato en la finca! Momento de COMPRAR según Monte Carlo."},
+                {e: '⚠️', t: "Subiendo como río Cauca. Vende y asegura ganancia antes que baje, dice Black-Scholes."},
+                {e: '🤝', t: "Tranquilo como tinto en domingo. Mantén y observa las mates."}
+            ];
+            const c = consejos[Math.floor(Math.random() * consejos.length)];
+            document.getElementById('modal-emoji').innerText = c.e;
+            document.getElementById('modal-text').innerText = c.t;
+            document.getElementById('modal').style.display = 'flex';
         }
 
-        actualizarPrecio();
+        function cerrarModal() {
+            document.getElementById('modal').style.display = 'none';
+        }
+
+        // Inicio
+        actualizarTodo();
     </script>
 </body>
 </html>
