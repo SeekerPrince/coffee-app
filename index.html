@@ -44,10 +44,16 @@
         .profit { background: rgba(16, 185, 129, 0.3); color: var(--profit); border: 2px solid var(--profit); }
         .loss { background: rgba(239, 68, 68, 0.3); color: var(--loss); border: 2px solid var(--loss); }
 
-        .btn-ia { background: linear-gradient(135deg, var(--primary), var(--secondary)); color: white; border: none; padding: 20px 40px; border-radius: 20px; font-size: 1.4rem; font-weight: 700; cursor: pointer; box-shadow: 0 10px 30px rgba(0, 212, 255, 0.4); transition: all 0.3s ease; }
+        .btn-ia { background: linear-gradient(135deg, var(--primary), var(--secondary)); color: white; border: none; padding: 20px 40px; border-radius: 20px; font-size: 1.4rem; font-weight: 700; cursor: pointer; box-shadow: 0 10px 30px rgba(0, 212, 255, 0.4); transition: all 0.3s ease; margin: 10px; }
         .btn-ia:hover { transform: translateY(-5px); box-shadow: 0 15px 40px rgba(0, 212, 255, 0.6); }
+        .btn-buy { background: linear-gradient(135deg, var(--profit), #059669); }
+        .btn-sell { background: linear-gradient(135deg, var(--loss), #dc2626); }
 
         .chart-wrapper { height: 350px; background: rgba(0, 0, 0, 0.3); border-radius: 15px; padding: 20px; margin: 20px 0; }
+
+        .position-info { font-size: 1.4rem; margin: 20px 0; padding: 15px; background: rgba(255,255,255,0.05); border-radius: 15px; }
+        .gain { color: var(--profit); }
+        .loss { color: var(--loss); }
 
         .notification { position: fixed; bottom: 20px; right: 20px; background: var(--card-bg); border-left: 5px solid var(--primary); padding: 20px; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); animation: slideIn 0.5s, slideOut 0.5s 5s forwards; z-index: 1000; }
         @keyframes slideIn { from { transform: translateX(100%); } to { transform: translateX(0); } }
@@ -61,7 +67,7 @@
 
     <header class="terminal-header">
         <div class="glow-text">COFFE TRADE PRO</div>
-        <p style="color: var(--text-secondary);">Terminal Financiero IA • Precios Reales Café Arabica • Cali, Colombia ☕</p>
+        <p style="color: var(--text-secondary);">Terminal Financiero IA • Simulación de Trading • Precios Reales Café Arabica ☕</p>
     </header>
 
     <main style="max-width: 1200px; margin: 0 auto;">
@@ -74,25 +80,28 @@
             <div class="chart-wrapper">
                 <canvas id="priceChart"></canvas>
             </div>
+
+            <!-- Simulación de Trading -->
+            <div class="position-info" id="position-info">No tienes posición abierta.</div>
+            <div style="text-align: center;">
+                <button class="btn-ia btn-buy" onclick="comprar()">Comprar Ahora (1000 lbs)</button>
+                <button class="btn-ia btn-sell" onclick="vender()" id="btn-vender" disabled>Vender Ahora</button>
+            </div>
             <div style="text-align: center; margin-top: 20px;">
                 <button class="btn-ia" onclick="consultarIA()">Consultar IA Pro</button>
-                <button class="btn-ia" style="margin-left: 20px; background: var(--warning);" onclick="actualizarDatos()">Actualizar Precio</button>
+                <button class="btn-ia" style="background: var(--warning);" onclick="actualizarDatos()">Actualizar Precio</button>
             </div>
-        </div>
-
-        <div class="market-card">
-            <h2 style="color: var(--primary);">Factores Clave Hoy (Feb 2026)</h2>
-            <ul style="text-align: left; color: var(--text-secondary);">
-                <li>Cosecha récord Brasil (+17%): Precios bajando fuerte.</li>
-                <li>Clima ideal en Colombia y Brasil: Menos riesgos.</li>
-                <li>Precio actual ~$2.92-2.94 USD/lb: Mercado bajista.</li>
-                <li>Recomendación general: Observar para comprar en dips.</li>
-            </ul>
         </div>
     </main>
 
     <script>
         const CORS_PROXY = 'https://api.allorigins.win/raw?url=';
+        const CANTIDAD = 1000; // Simulamos 1000 lbs para números reales
+
+        let currentPrice = 292.50; // Fallback
+        let buyPrice = 0;
+        let tienePosicion = false;
+        let chart;
 
         // Partículas
         function createParticles() {
@@ -107,9 +116,6 @@
             }
         }
         createParticles();
-
-        let currentPrice = 292.50; // Fallback real hoy
-        let chart;
 
         function crearGrafico() {
             const ctx = document.getElementById('priceChart').getContext('2d');
@@ -131,6 +137,41 @@
             });
         }
 
+        function actualizarPrecioUI() {
+            document.getElementById('current-price').innerText = `$${ (currentPrice / 100).toFixed(2) } USD/lb`;
+
+            // Cambio vs referencia aproximada
+            const change = ((currentPrice - 295) / 295 * 100).toFixed(2);
+            const changeEl = document.getElementById('price-change');
+            if (change > 0) {
+                changeEl.className = 'price-change profit';
+                changeEl.innerText = `+${change}%`;
+            } else {
+                changeEl.className = 'price-change loss';
+                changeEl.innerText = `${change}%`;
+            }
+
+            // Actualizar posición si tienes
+            if (tienePosicion) {
+                const valorActual = (currentPrice / 100) * CANTIDAD;
+                const valorCompra = (buyPrice / 100) * CANTIDAD;
+                const ganancia = valorActual - valorCompra;
+                const porcentaje = ((ganancia / valorCompra) * 100).toFixed(2);
+
+                const info = document.getElementById('position-info');
+                info.innerHTML = `
+                    <strong>Posición abierta:</strong> 1000 lbs compradas a $${(buyPrice / 100).toFixed(2)} USD/lb<br>
+                    Valor actual: $${valorActual.toFixed(2)} USD<br>
+                    <span class="${ganancia >= 0 ? 'gain' : 'loss'}">
+                        Ganancia/Pérdida: $${ganancia.toFixed(2)} USD (${porcentaje}%)
+                    </span>
+                `;
+                document.getElementById('btn-vender').disabled = false;
+            }
+
+            crearGrafico();
+        }
+
         async function actualizarDatos() {
             try {
                 const url = CORS_PROXY + encodeURIComponent('https://query1.finance.yahoo.com/v8/finance/chart/KC=F?range=1d&interval=1d');
@@ -139,31 +180,51 @@
                 const meta = data.chart.result[0].meta;
                 currentPrice = meta.regularMarketPrice?.toFixed(2) || currentPrice;
 
-                document.getElementById('current-price').innerText = `$${ (currentPrice / 100).toFixed(2) } USD/lb`;
-                const change = ((currentPrice - 295) / 295 * 100).toFixed(2); // Cambio vs referencia
-                const changeEl = document.getElementById('price-change');
-                if (change > 0) {
-                    changeEl.className = 'price-change profit';
-                    changeEl.innerText = `+${change}%`;
-                } else {
-                    changeEl.className = 'price-change loss';
-                    changeEl.innerText = `${change}%`;
-                }
-
-                crearGrafico();
-                mostrarNotificacion('Precio actualizado con datos reales ☕');
+                actualizarPrecioUI();
+                mostrarNotificacion('Precio actualizado ☕');
             } catch (e) {
-                document.getElementById('current-price').innerText = '$2.93 USD/lb (aprox hoy)';
-                mostrarNotificacion('Usando precio aproximado - mercado bajista');
+                mostrarNotificacion('Precio aproximado (actualización fallida)');
             }
+        }
+
+        function comprar() {
+            if (tienePosicion) {
+                mostrarNotificacion('Ya tienes posición abierta');
+                return;
+            }
+            buyPrice = currentPrice;
+            tienePosicion = true;
+            document.getElementById('btn-vender').disabled = false;
+            actualizarPrecioUI();
+            mostrarNotificacion(`¡Compraste 1000 lbs a $${(buyPrice / 100).toFixed(2)} USD/lb!`);
+        }
+
+        function vender() {
+            if (!tienePosicion) {
+                mostrarNotificacion('No tienes posición para vender');
+                return;
+            }
+            const valorActual = (currentPrice / 100) * CANTIDAD;
+            const valorCompra = (buyPrice / 100) * CANTIDAD;
+            const ganancia = valorActual - valorCompra;
+
+            tienePosicion = false;
+            buyPrice = 0;
+            document.getElementById('btn-vender').disabled = true;
+            actualizarPrecioUI();
+
+            const resultado = ganancia >= 0 
+                ? `¡Ganaste $${ganancia.toFixed(2)} USD! 🎉` 
+                : `Perdiste $${Math.abs(ganancia).toFixed(2)} USD 😞`;
+            mostrarNotificacion(resultado);
         }
 
         function consultarIA() {
             const mensajes = [
-                "IA Pro: Mercado bajista por cosecha Brasil. Recomiendo COMPRAR en dips bajo $2.80. ¡Oportunidad en Valle del Cauca!",
-                "Alerta IA: Precios estables bajos. Mantener posiciones o acumular para venta futura.",
-                "Análisis: Clima favorable Colombia. Posible rebote si demanda Asia sube.",
-                "IA: Tendencia bajista corta plazo. Stop-loss recomendado en $3.00."
+                "IA Pro: Mercado bajista por cosecha Brasil. Compra en dips bajo $2.80 y vende en rebote.",
+                "Alerta IA: Precios bajos estables. Buena oportunidad para acumular en Valle del Cauca.",
+                "Análisis: Clima favorable Colombia. Posible subida si demanda Asia aumenta.",
+                "IA: Tendencia bajista corta plazo. Usa stop-loss si compras."
             ];
             alert(mensajes[Math.floor(Math.random() * mensajes.length)]);
         }
@@ -173,9 +234,10 @@
             notif.className = 'notification';
             notif.innerText = msg;
             document.body.appendChild(notif);
+            setTimeout(() => notif.remove(), 6000);
         }
 
-        // Auto actualizar cada 30 seg
+        // Inicio
         actualizarDatos();
         setInterval(actualizarDatos, 30000);
         crearGrafico();
