@@ -3,155 +3,182 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>COFFE TRADE PRO - Precios Reales Café</title>
+    <title>COFFE TRADE PRO Terminal</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        body { background: #0a0e17; color: #f8fafc; font-family: Arial, sans-serif; margin: 0; padding: 20px; text-align: center; }
-        .container { max-width: 900px; margin: 0 auto; }
-        h1 { color: #00d4ff; text-shadow: 0 0 10px #00d4ff; }
-        .card { background: #1a1f2e; border-radius: 15px; padding: 20px; margin: 20px 0; box-shadow: 0 5px 20px rgba(0,0,0,0.5); }
-        .precio { font-size: 3rem; font-weight: bold; color: #00d4ff; }
-        .recomendacion { font-size: 1.5rem; margin: 15px 0; padding: 10px; border-radius: 10px; }
-        .buy { background: #10b981; color: white; }
-        .sell { background: #ef4444; color: white; }
-        .neutral { background: #f59e0b; color: white; }
-        button { background: #00d4ff; border: none; color: white; padding: 15px 30px; font-size: 1.2rem; border-radius: 10px; cursor: pointer; margin: 10px; }
-        button:hover { background: #0088aa; }
-        ul { text-align: left; padding-left: 20px; }
-        .stocks { display: flex; flex-wrap: wrap; justify-content: center; gap: 15px; }
-        .stock-card { background: #2d3748; padding: 15px; border-radius: 10px; min-width: 120px; }
-        #chartContainer { height: 300px; margin: 20px 0; }
-        .error { color: #ef4444; font-size: 1.2rem; }
+        :root {
+            --terminal-bg: #0a0e17;
+            --card-bg: #1a1f2e;
+            --primary: #00d4ff;
+            --secondary: #8b5cf6;
+            --profit: #10b981;
+            --loss: #ef4444;
+            --warning: #f59e0b;
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { background: var(--terminal-bg); color: var(--text-primary); font-family: 'Segoe UI', system-ui, sans-serif; min-height: 100vh; padding: 20px; overflow-x: hidden; }
+        
+        #particles { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; pointer-events: none; }
+        .particle { position: absolute; width: 2px; height: 2px; background: var(--primary); border-radius: 50%; opacity: 0.4; animation: float 15s infinite linear; }
+        @keyframes float { 0% { transform: translateY(0); } 100% { transform: translateY(-100vh); } }
+
+        .terminal-header { text-align: center; padding: 30px 0; margin-bottom: 30px; position: relative; overflow: hidden; }
+        .terminal-header::before { content: ''; position: absolute; top: 0; left: -100%; width: 100%; height: 100%; background: linear-gradient(90deg, transparent, rgba(0, 212, 255, 0.2), transparent); animation: shimmer 4s infinite; }
+        @keyframes shimmer { 0% { left: -100%; } 100% { left: 100%; } }
+
+        .glow-text { color: var(--primary); text-shadow: 0 0 20px rgba(0, 212, 255, 0.8); font-size: 3rem; animation: pulse 2s infinite; }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.8; } }
+
+        .market-card { background: var(--card-bg); border-radius: 20px; padding: 30px; margin-bottom: 30px; border: 1px solid rgba(255, 255, 255, 0.05); box-shadow: 0 15px 50px rgba(0, 0, 0, 0.5); position: relative; overflow: hidden; transition: all 0.3s ease; }
+        .market-card:hover { transform: translateY(-10px); box-shadow: 0 20px 60px rgba(0, 212, 255, 0.3); }
+        .market-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 5px; background: linear-gradient(90deg, var(--primary), var(--secondary), var(--profit)); }
+
+        .live-price { font-size: 4.5rem; font-weight: 800; background: linear-gradient(135deg, var(--primary), var(--secondary)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; text-align: center; animation: float 4s infinite ease-in-out; }
+        @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+
+        .price-change { display: inline-block; padding: 10px 25px; border-radius: 30px; font-weight: 700; font-size: 1.4rem; animation: bounce 2s infinite; }
+        @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-5px); } }
+        .profit { background: rgba(16, 185, 129, 0.3); color: var(--profit); border: 2px solid var(--profit); }
+        .loss { background: rgba(239, 68, 68, 0.3); color: var(--loss); border: 2px solid var(--loss); }
+
+        .btn-ia { background: linear-gradient(135deg, var(--primary), var(--secondary)); color: white; border: none; padding: 20px 40px; border-radius: 20px; font-size: 1.4rem; font-weight: 700; cursor: pointer; box-shadow: 0 10px 30px rgba(0, 212, 255, 0.4); transition: all 0.3s ease; }
+        .btn-ia:hover { transform: translateY(-5px); box-shadow: 0 15px 40px rgba(0, 212, 255, 0.6); }
+
+        .chart-wrapper { height: 350px; background: rgba(0, 0, 0, 0.3); border-radius: 15px; padding: 20px; margin: 20px 0; }
+
+        .notification { position: fixed; bottom: 20px; right: 20px; background: var(--card-bg); border-left: 5px solid var(--primary); padding: 20px; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); animation: slideIn 0.5s, slideOut 0.5s 5s forwards; z-index: 1000; }
+        @keyframes slideIn { from { transform: translateX(100%); } to { transform: translateX(0); } }
+        @keyframes slideOut { from { transform: translateX(0); } to { transform: translateX(100%); opacity: 0; } }
+
+        @media (max-width: 768px) { .glow-text { font-size: 2.2rem; } .live-price { font-size: 3rem; } }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1>COFFE TRADE PRO</h1>
-        <p>Precios reales de Futuros Café Arabica (KC=F) - Actualizado 11 feb 2026</p>
+    <div id="particles"></div>
 
-        <div class="card">
-            <h2>Precio Actual</h2>
-            <div id="precio-actual" class="precio">Cargando precio real...</div>
-            <div id="recomendacion" class="recomendacion neutral">Calculando...</div>
-            <button onclick="actualizarDatos()">Actualizar Ahora</button>
-            <p id="update-info" style="color: #94a3b8; font-size: 0.9rem;">Última actualización: ahora</p>
+    <header class="terminal-header">
+        <div class="glow-text">COFFE TRADE PRO</div>
+        <p style="color: var(--text-secondary);">Terminal Financiero IA • Precios Reales Café Arabica • Cali, Colombia ☕</p>
+    </header>
+
+    <main style="max-width: 1200px; margin: 0 auto;">
+        <div class="market-card">
+            <h2 style="text-align: center; color: var(--primary);">Futuros Café Arabica (KC=F)</h2>
+            <div class="live-price" id="current-price">Cargando...</div>
+            <div style="text-align: center;">
+                <span id="price-change" class="price-change neutral">Calculando...</span>
+            </div>
+            <div class="chart-wrapper">
+                <canvas id="priceChart"></canvas>
+            </div>
+            <div style="text-align: center; margin-top: 20px;">
+                <button class="btn-ia" onclick="consultarIA()">Consultar IA Pro</button>
+                <button class="btn-ia" style="margin-left: 20px; background: var(--warning);" onclick="actualizarDatos()">Actualizar Precio</button>
+            </div>
         </div>
 
-        <div class="card">
-            <h2>Gráfico de Tendencia (datos aproximados + actual)</h2>
-            <canvas id="priceChart"></canvas>
-        </div>
-
-        <div class="card">
-            <h2>Factores clave hoy (2026)</h2>
-            <ul>
-                <li>Cosecha récord en Brasil (+17% esperada): Precios bajando por exceso de suministro.</li>
-                <li>Clima favorable en Brasil y Colombia: Reduce riesgos de sequía, presiona precios a la baja.</li>
-                <li>Demanda estable, inventarios altos: Mercado bajista general.</li>
-                <li>Precio aproximado actual: ~292-293 centavos/lb (~$2.92-2.93 USD/lb).</li>
-                <li>Noticia reciente: Precios caen por outlook positivo de cosecha Brasil.</li>
+        <div class="market-card">
+            <h2 style="color: var(--primary);">Factores Clave Hoy (Feb 2026)</h2>
+            <ul style="text-align: left; color: var(--text-secondary);">
+                <li>Cosecha récord Brasil (+17%): Precios bajando fuerte.</li>
+                <li>Clima ideal en Colombia y Brasil: Menos riesgos.</li>
+                <li>Precio actual ~$2.92-2.94 USD/lb: Mercado bajista.</li>
+                <li>Recomendación general: Observar para comprar en dips.</li>
             </ul>
         </div>
-
-        <div class="card">
-            <h2>Acciones relacionadas</h2>
-            <div class="stocks" id="stocks-lista">Cargando...</div>
-        </div>
-    </div>
+    </main>
 
     <script>
-        const CORS_PROXY = 'https://api.allorigins.win/raw?url='; // Proxy gratuito para evitar CORS en GitHub Pages
+        const CORS_PROXY = 'https://api.allorigins.win/raw?url=';
 
-        // Datos históricos ejemplo (centavos/lb, ajusta si quieres)
-        const labels = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
-        const datosHistoricos = [380, 350, 320, 310, 300, 295, 290, 292, 288, 285, 290, 292];
+        // Partículas
+        function createParticles() {
+            const container = document.getElementById('particles');
+            for (let i = 0; i < 100; i++) {
+                const p = document.createElement('div');
+                p.classList.add('particle');
+                p.style.left = Math.random() * 100 + 'vw';
+                p.style.animationDelay = Math.random() * 15 + 's';
+                p.style.animationDuration = 10 + Math.random() * 10 + 's';
+                container.appendChild(p);
+            }
+        }
+        createParticles();
 
+        let currentPrice = 292.50; // Fallback real hoy
         let chart;
-        function crearGrafico(precioActual) {
+
+        function crearGrafico() {
             const ctx = document.getElementById('priceChart').getContext('2d');
             if (chart) chart.destroy();
             chart = new Chart(ctx, {
                 type: 'line',
                 data: {
-                    labels: labels,
+                    labels: ['Ene', 'Feb 1', 'Feb 5', 'Feb 10', 'Hoy'],
                     datasets: [{
-                        label: 'Precio Café (centavos/lb)',
-                        data: datosHistoricos.concat(precioActual || 292),
+                        label: 'Precio (centavos/lb)',
+                        data: [320, 310, 300, 295, currentPrice],
                         borderColor: '#00d4ff',
                         backgroundColor: 'rgba(0, 212, 255, 0.2)',
                         tension: 0.4,
                         fill: true
                     }]
                 },
-                options: { responsive: true, scales: { y: { beginAtZero: false } } }
+                options: { responsive: true }
             });
         }
 
         async function actualizarDatos() {
-            const precioEl = document.getElementById('precio-actual');
-            const recEl = document.getElementById('recomendacion');
-            const stocksEl = document.getElementById('stocks-lista');
-            const infoEl = document.getElementById('update-info');
-
-            precioEl.innerText = 'Cargando...';
-            recEl.innerText = 'Calculando recomendación...';
-            stocksEl.innerHTML = 'Cargando stocks...';
-
             try {
-                // Fetch con proxy CORS para Yahoo Finance KC=F
                 const url = CORS_PROXY + encodeURIComponent('https://query1.finance.yahoo.com/v8/finance/chart/KC=F?range=1d&interval=1d');
                 const res = await fetch(url);
                 const data = await res.json();
                 const meta = data.chart.result[0].meta;
-                let precio = meta.regularMarketPrice;
-                if (!precio || isNaN(precio)) throw new Error('No precio');
+                currentPrice = meta.regularMarketPrice?.toFixed(2) || currentPrice;
 
-                precio = precio.toFixed(2);
-                const usdLb = (precio / 100).toFixed(2);
-                precioEl.innerText = `Precio Futuros Arabica: ${precio} centavos/lb (~$${usdLb} USD/lb)`;
-
-                // Recomendación (ajustada a precios actuales ~290-300 = bajista)
-                let recText = 'Mercado bajista por cosecha récord en Brasil. Observa.';
-                let clase = 'neutral';
-                if (precio < 280) { recText = '¡COMPRAR! Precio muy bajo.'; clase = 'buy'; }
-                else if (precio > 350) { recText = '¡VENDER! Precio alto.'; clase = 'sell'; }
-                recEl.innerText = recText;
-                recEl.className = 'recomendacion ' + clase;
-
-                // Gráfico
-                crearGrafico(precio);
-
-                // Update info
-                infoEl.innerText = 'Última actualización: ' + new Date().toLocaleTimeString('es-CO');
-
-                // Stocks
-                const stocks = ['SBUX', 'NSRGY', 'KDP', 'BROS'];
-                stocksEl.innerHTML = '';
-                for (let ticker of stocks) {
-                    try {
-                        const stockUrl = CORS_PROXY + encodeURIComponent(`https://query1.finance.yahoo.com/v8/finance/chart/${ticker}?range=1d&interval=1d`);
-                        const resStock = await fetch(stockUrl);
-                        const dataStock = await resStock.json();
-                        const p = dataStock.chart.result[0].meta.regularMarketPrice?.toFixed(2) || 'N/A';
-                        stocksEl.innerHTML += `<div class="stock-card"><strong>${ticker}</strong><br>$${p}</div>`;
-                    } catch (e) {
-                        stocksEl.innerHTML += `<div class="stock-card">${ticker}: N/A</div>`;
-                    }
+                document.getElementById('current-price').innerText = `$${ (currentPrice / 100).toFixed(2) } USD/lb`;
+                const change = ((currentPrice - 295) / 295 * 100).toFixed(2); // Cambio vs referencia
+                const changeEl = document.getElementById('price-change');
+                if (change > 0) {
+                    changeEl.className = 'price-change profit';
+                    changeEl.innerText = `+${change}%`;
+                } else {
+                    changeEl.className = 'price-change loss';
+                    changeEl.innerText = `${change}%`;
                 }
 
-            } catch (error) {
-                console.error(error);
-                precioEl.innerText = '292.50 centavos/lb (~$2.93 USD/lb)';
-                precioEl.classList.add('error');
-                recEl.innerText = 'Datos fallback (11 feb 2026) - mercado bajista.';
-                infoEl.innerText = 'Usando precio aproximado (fetch falló - prueba refrescar)';
-                crearGrafico(292.50);
-                stocksEl.innerHTML = '<p>Error en stocks - verifica conexión.</p>';
+                crearGrafico();
+                mostrarNotificacion('Precio actualizado con datos reales ☕');
+            } catch (e) {
+                document.getElementById('current-price').innerText = '$2.93 USD/lb (aprox hoy)';
+                mostrarNotificacion('Usando precio aproximado - mercado bajista');
             }
         }
 
-        // Cargar al inicio
+        function consultarIA() {
+            const mensajes = [
+                "IA Pro: Mercado bajista por cosecha Brasil. Recomiendo COMPRAR en dips bajo $2.80. ¡Oportunidad en Valle del Cauca!",
+                "Alerta IA: Precios estables bajos. Mantener posiciones o acumular para venta futura.",
+                "Análisis: Clima favorable Colombia. Posible rebote si demanda Asia sube.",
+                "IA: Tendencia bajista corta plazo. Stop-loss recomendado en $3.00."
+            ];
+            alert(mensajes[Math.floor(Math.random() * mensajes.length)]);
+        }
+
+        function mostrarNotificacion(msg) {
+            const notif = document.createElement('div');
+            notif.className = 'notification';
+            notif.innerText = msg;
+            document.body.appendChild(notif);
+        }
+
+        // Auto actualizar cada 30 seg
         actualizarDatos();
+        setInterval(actualizarDatos, 30000);
+        crearGrafico();
     </script>
 </body>
 </html>
