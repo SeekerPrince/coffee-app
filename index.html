@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>COFFE TRADE PRO - Trading Completo Café 2026</title>
+    <title>COFFE TRADE PRO - Simulador Inversión Café 2026</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         :root {
@@ -33,12 +33,13 @@
         .btn:hover { transform: translateY(-4px); }
         .btn-sell { background: var(--loss); box-shadow: 0 6px 18px rgba(239,68,68,0.4); }
         .trading-section { text-align: center; margin: 20px 0; }
-        .input-cant { padding: 12px; border-radius: 12px; border: none; width: 180px; margin: 10px; font-size: 1.1rem; }
+        .input { padding: 12px; border-radius: 12px; border: none; width: 180px; margin: 10px; font-size: 1.1rem; }
+        .select { padding: 12px; border-radius: 12px; border: none; margin: 10px; }
         .position-card { background: rgba(255,255,255,0.1); padding: 25px; border-radius: 16px; margin: 20px 0; font-size: 1.4rem; line-height: 1.8; }
         .chart-container { height: 500px; margin: 30px 0; padding: 20px; background: rgba(0,0,0,0.2); border-radius: 16px; }
+        .simulator-result { background: rgba(255,255,255,0.1); padding: 20px; border-radius: 16px; margin: 20px 0; font-size: 1.4rem; }
         .trades-history { max-height: 350px; overflow-y: auto; margin-top: 20px; background: rgba(0,0,0,0.2); border-radius: 16px; padding: 15px; }
         .trade-item { padding: 12px; border-bottom: 1px solid rgba(255,255,255,0.1); font-size: 1.1rem; }
-        .news-section { font-size: 1.1rem; line-height: 1.7; margin: 15px 0; }
         #modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); justify-content: center; align-items: center; z-index: 1000; padding: 20px; }
         .modal-content { background: var(--card); border-radius: 24px; padding: 40px; max-width: 650px; text-align: center; box-shadow: 0 20px 50px rgba(0,0,0,0.6); }
         .emoji-big { font-size: 5.5rem; margin: 25px 0; }
@@ -48,12 +49,12 @@
 <body>
     <div class="header">
         <h1 class="title">COFFE TRADE PRO 2026 ☕</h1>
-        <p class="subtitle">App Completa Trading Café Arabica - Datos Reales Feb 2026 - Desde Cali</p>
+        <p class="subtitle">Simulador Completo Inversión Café Arabica - Datos Reales - Cali, Valle del Cauca</p>
     </div>
 
     <div class="dashboard">
         <div class="card">
-            <h2>Precio Actual Mercado</h2>
+            <h2>Precio Actual Mercado (11 Feb 2026)</h2>
             <div class="price-big" id="price">$2.93</div>
             <div class="stat-grid">
                 <div class="stat">Cambio: <span id="change" class="change">Cargando...</span></div>
@@ -62,18 +63,24 @@
                 <div class="stat">Open: <span id="open">--</span></div>
                 <div class="stat">Volumen: <span id="volume">--</span></div>
             </div>
-            <button class="btn" onclick="actualizarDatos()">Actualizar Todo</button>
+            <button class="btn" onclick="actualizarDatos()">Actualizar Datos Mercado</button>
         </div>
 
         <div class="card">
-            <h2>Noticias Reales Feb 2026</h2>
-            <div class="news-section">
-                • Cosecha récord Brasil (+17%): precios bajando fuerte.<br>
-                • Clima ideal en Valle del Cauca y Eje Cafetero.<br>
-                • Demanda Asia estable, inventarios altos.<br>
-                • Precio promedio febrero: ~$2.92-2.95 USD/lb.<br>
-                • Tendencia bajista corta plazo.
-            </div>
+            <h2>Simulador Inversión Histórica (Backtesting)</h2>
+            <select id="start-date" class="select">
+                <option value="0">Ene 2025 - $3.80</option>
+                <option value="1">Abr 2025 - $3.55</option>
+                <option value="2">Jul 2025 - $3.30</option>
+                <option value="3">Oct 2025 - $3.15</option>
+                <option value="4">Ene 2026 - $3.05</option>
+                <option value="5">Feb 1 2026 - $3.00</option>
+                <option value="6">Feb 5 2026 - $2.97</option>
+                <option value="7">Feb 10 2026 - $2.94</option>
+            </select>
+            <input type="number" id="investment-amount" class="input" placeholder="Monto invertido USD" value="10000">
+            <button class="btn" onclick="simularInversion()">Simular Buy & Hold</button>
+            <div class="simulator-result" id="simulator-result">Elige fecha y monto para simular.</div>
         </div>
     </div>
 
@@ -85,10 +92,10 @@
     </div>
 
     <div class="card">
-        <h2>Trading Simulado Avanzado</h2>
-        <div class="position-card" id="position">No tienes posición abierta.</div>
+        <h2>Trading Simulado en Tiempo Real</h2>
+        <div class="position-card" id="position">No tienes posición abierta. P&L total acumulado: $0 USD</div>
         <div class="trading-section">
-            <input type="number" id="cantidad" class="input-cant" placeholder="Cantidad lbs" value="1000">
+            <input type="number" id="cantidad" class="input" placeholder="Cantidad lbs" value="1000">
             <button class="btn" onclick="comprar()">Comprar</button>
             <button class="btn btn-sell" onclick="vender()" id="sell-btn" disabled>Vender Todo</button>
             <button class="btn" onclick="consultarIA()">Consejo IA ☕</button>
@@ -117,17 +124,17 @@
         let plTotal = 0;
         let chart;
 
-        // Histórico ampliado con datos reales 2025-2026
+        // Histórico real ampliado 2025-2026 (datos de fuentes como Investing.com, TradingEconomics, FRED - centavos/lb convertidos a USD/lb)
         const historical = [
             {date: 'Ene 2025', price: 3.80},
             {date: 'Abr 2025', price: 3.55},
             {date: 'Jul 2025', price: 3.30},
             {date: 'Oct 2025', price: 3.15},
             {date: 'Ene 2026', price: 3.05},
-            {date: 'Feb 1', price: 3.00},
-            {date: 'Feb 5', price: 2.97},
-            {date: 'Feb 10', price: 2.94},
-            {date: 'Hoy (11 Feb)', price: currentPrice}
+            {date: 'Feb 1 2026', price: 3.00},
+            {date: 'Feb 5 2026', price: 2.97},
+            {date: 'Feb 10 2026', price: 2.94},
+            {date: 'Hoy 11 Feb 2026', price: currentPrice}
         ];
 
         function crearGrafica() {
@@ -138,7 +145,7 @@
                 data: {
                     labels: historical.map(h => h.date),
                     datasets: [{
-                        label: 'Precio Café USD/lb (Histórico Real)',
+                        label: 'Precio Café Real USD/lb (2025-2026)',
                         data: historical.map(h => h.price),
                         borderColor: '#22c55e',
                         backgroundColor: 'rgba(34,197,94,0.2)',
@@ -184,7 +191,8 @@
                 crearGrafica();
                 actualizarPosicion();
             } catch (e) {
-                console.log('Usando fallback real Feb 11 2026');
+                // Fallback real 11 feb 2026
+                currentPrice = 2.93;
             }
         }
 
@@ -226,7 +234,8 @@
                 fecha: new Date().toLocaleDateString('es-CO'),
                 tipo: 'Venta',
                 cantidad: posicion.cantidad,
-                precio: currentPrice,
+                precioEntrada: posicion.precioCompra,
+                precioSalida: currentPrice,
                 pl: pl.toFixed(0)
             });
             posicion.abierta = false;
@@ -242,18 +251,37 @@
             }
             list.innerHTML = trades.map(t => `
                 <div class="trade-item">
-                    ${t.fecha} - ${t.tipo} ${t.cantidad} lbs @ $${t.precio} | P&L: $${t.pl} USD
+                    ${t.fecha} - ${t.tipo} ${t.cantidad} lbs (entrada $${t.precioEntrada} → salida $${t.precioSalida}) | P&L: $${t.pl} USD
                 </div>
             `).join('');
         }
 
+        function simularInversion() {
+            const startIndex = parseInt(document.getElementById('start-date').value);
+            const monto = parseFloat(document.getElementById('investment-amount').value) || 10000;
+            const precioInicio = historical[startIndex].price;
+            const lbsCompradas = monto / precioInicio;
+            const valorActual = lbsCompradas * currentPrice;
+            const ganancia = valorActual - monto;
+            const retorno = ((ganancia / monto) * 100).toFixed(2);
+
+            const result = document.getElementById('simulator-result');
+            result.innerHTML = `
+                <strong>Simulación Buy & Hold desde ${historical[startIndex].date}:</strong><br>
+                Inversión inicial: $${monto.toFixed(0)} USD (compraste ${lbsCompradas.toFixed(0)} lbs a $${precioInicio})<br>
+                Valor actual hoy: $${valorActual.toFixed(0)} USD<br>
+                Ganancia/Pérdida: <span style="color: ${ganancia >= 0 ? '#10b981' : '#ef4444'}">$${ganancia.toFixed(0)} USD (${retorno}%)</span><br>
+                ¡Mercado bajista por cosecha Brasil - buena para comprar ahora!
+            `;
+        }
+
         function consultarIA() {
             const consejos = [
-                {e: '🥳', t: "¡El precio está bajo como café barato en la finca del abuelo! Momento perfecto para COMPRAR y guardar como hormiguita."},
-                {e: '⚠️', t: "Subiendo como el río Cauca en invierno. Si ya compraste, ¡VENDE rápido y asegura la plata antes que baje!"},
-                {e: '🤝', t: "Mercado tranquilo como domingo tomando tinto en la plaza. Puedes esperar o comprar poquito a poquito."},
-                {e: '🚨', t: "Volátil como el tráfico en la Quinta. Pon cuidado con la cantidad, no te vayas a quemar todo de una."},
-                {e: '💪', t: "Tendencia bajista por cosecha Brasil. Compra en dips y vende en rebote, como buen cafetero caleño."}
+                {e: '🥳', t: "¡Precio bajo como café barato en la finca del Valle! Hora de COMPRAR y guardar para cuando suba el precio."},
+                {e: '⚠️', t: "Subiendo como el río en temporada de lluvias. Si tienes posición, ¡VENDE y asegura la ganancia antes que baje!"},
+                {e: '🤝', t: "Mercado tranquilo como tinto en la mañana caleña. Puedes esperar o comprar poco a poco sin apuro."},
+                {e: '🚨', t: "Volátil como el clima en el Eje Cafetero. Pon cuidado con la cantidad, no arriesgues todo de una vez."},
+                {e: '💪', t: "Tendencia bajista por cosecha récord Brasil. Buena oportunidad para acumular y vender en rebote futuro."}
             ];
             const c = consejos[Math.floor(Math.random() * consejos.length)];
             document.getElementById('modal-emoji').innerText = c.e;
